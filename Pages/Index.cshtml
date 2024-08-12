@@ -1,0 +1,32 @@
+﻿@page
+@model Index
+@{
+
+}
+
+<div class="text-center">
+    @{
+        if (Model.DataResult != null && Model.DataResult.Data != null && Model.DataResult.Data.Any())
+        {
+            <h1 class="display-4">Population Data</h1>
+            <h2>Total Records: @Model.DataResult.Data.Count</h2>
+
+            <div>
+                @foreach (var item in Model.DataResult.Data)
+                {
+                    <p>
+                        <strong>Nation:</strong> @item.Nation <br />
+                        <strong>Year:</strong> @item.Year <br />
+                        <strong>Population:</strong> @item.Population <br />
+                        <strong>Slug Nation:</strong> @item.SlugNation
+                    </p>
+                }
+            </div>
+        }
+        else
+        {
+            <h2>No data</h2>
+        }
+    }
+    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+</div>
