@@ -1,68 +1,30 @@
 ﻿@page
-@model Index
+@model DrexlerMacaspac.Pages.IndexModel
 @{
-
+    ViewData["Title"] = "Population Data";
 }
 
-<div class="text-center">
-    @{
-        if (Model.DataResult != null)
-        {
-            
-            if (Model.DataResult.Data != null && Model.DataResult.Data.Any())
-            {
-                <h1 class="display-4">Population Data</h1>
-                <h2>Total Records: @Model.DataResult.Data.Count</h2>
+<h1>Population Data</h1>
 
-                <div>
-                    @foreach (var item in Model.DataResult.Data)
-                    {
-                        <p>
-                            <strong>Nation:</strong> @item.Nation <br />
-                            <strong>Year:</strong> @item.Year <br />
-                            <strong>Population:</strong> @item.Population <br />
-                            <strong>Slug Nation:</strong> @item.SlugNation
-                        </p>
-                    }
-                </div>
-            }
-            else
-            {
-                <h2>No population data available</h2>
-            }
-
-            
-            if (Model.DataResult.Source != null && Model.DataResult.Source.Any())
-            {
-                <h2>Source Information</h2>
-                <div>
-                    @foreach (var source in Model.DataResult.Source)
-                    {
-                        <div>
-                            <p>
-                                <strong>Source Name:</strong> @source.Name <br />
-                                <strong>Measures:</strong> @string.Join(", ", source.Measures) <br />
-                                <strong>Source Name:</strong> @source.Annotations.SourceName <br />
-                                <strong>Source Description:</strong> @source.Annotations.SourceDescription <br />
-                                <strong>Dataset Name:</strong> @source.Annotations.DatasetName <br />
-                                <strong>Dataset Link:</strong> <a href="@source.Annotations.DatasetLink" target="_blank">@source.Annotations.DatasetLink</a> <br />
-                                <strong>Table ID:</strong> @source.Annotations.TableId <br />
-                                <strong>Topic:</strong> @source.Annotations.Topic <br />
-                                <strong>Subtopic:</strong> @source.Annotations.Subtopic
-                            </p>
-                        </div>
-                    }
-                </div>
-            }
-            else
-            {
-                <h2>No source information available</h2>
-            }
-        }
-        else
+@if (Model.PopulationRecords != null && Model.PopulationRecords.Count > 0)
+{
+    <ul>
+        @foreach (var record in Model.PopulationRecords)
         {
-            <h2>No data</h2>
+            <li>
+                <div style="display: flex; align-items: center;">
+                    <div style="margin-left: 15px;">
+                        <strong>@record.Year</strong> <br />
+                        Population: @record.Population <br />
+                        Nation: @record.Nation <br />
+                        <a href="https://www.census.gov/programs-surveys/acs/" target="_blank">Source</a>
+                    </div>
+                </div>
+            </li>
         }
-    }
-    <p>Drexler Macaspac CC213</a>.</p>
-</div>
+    </ul>
+}
+else
+{
+    <p>No population data available.</p>
+}

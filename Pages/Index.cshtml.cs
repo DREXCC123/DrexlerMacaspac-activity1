@@ -1,115 +1,49 @@
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Newtonsoft.Json;
-using System.Text.Json.Serialization;
+using System.Collections.Generic;
+using System.Net.Http;
+using System.Threading.Tasks;
+using DrexlerMacaspac.Models;
 
 namespace DrexlerMacaspac.Pages
 {
-    public class Index : PageModel
+    public class IndexModel : PageModel
     {
-        private readonly ILogger<Index> _logger;
+        private readonly ILogger<IndexModel> _logger;
 
-        public Index(ILogger<Index> logger)
+        public IndexModel(ILogger<IndexModel> logger)
         {
             _logger = logger;
         }
 
-        [BindProperty]
-        public Result? DataResult { get; set; }
+        public List<PopulationRecord> PopulationRecords { get; set; } = new List<PopulationRecord>();
 
-
-
-        public async Task<IActionResult> OnGet()
+        public async Task OnGetAsync()
         {
-            HttpClient httpClient = new HttpClient();
-            HttpResponseMessage response = await httpClient.GetAsync("https://datausa.io/api/data?drilldowns=Nation&measures=Population");
+            using var client = new HttpClient();
 
-            if (response.IsSuccessStatusCode)
+            try
             {
-                string? content = await response.Content.ReadAsStringAsync();
+                client.BaseAddress = new Uri("https://datausa.io/");
+                client.DefaultRequestHeaders.Add("User-Agent", "YourAppName/1.0");
 
-                if (!string.IsNullOrEmpty(content))
+                var response = await client.GetAsync("api/data?drilldowns=Nation&measures=Population");
+
+                if (response.IsSuccessStatusCode)
                 {
-                    Result? result = JsonConvert.DeserializeObject<Result>(content);
-
-                    if (result != null)
-                    {
-                        this.DataResult = result;
-                    }
-
+                    var content = await response.Content.ReadAsStringAsync();
+                    var populationData = JsonConvert.DeserializeObject<PopulationData>(content);
+                    PopulationRecords = populationData?.Data ?? new List<PopulationRecord>();
+                }
+                else
+                {
+                    _logger.LogError("Failed to fetch population data. Status code: {StatusCode}", response.StatusCode);
                 }
             }
-
-            return Page();
-        }
-
-        public class Result
-        {
-            [JsonProperty("data")]
-            public List<PopulationData> Data { get; set; }
-
-            [JsonProperty("source")]
-            public List<Source> Source { get; set; }
-        }
-
-        public class PopulationData
-        {
-            [JsonProperty("ID Nation")]
-            public string IDNation { get; set; }
-
-            [JsonProperty("Nation")]
-            public string Nation { get; set; }
-
-            [JsonProperty("ID Year")]
-            public int IDYear { get; set; }
-
-            [JsonProperty("Year")]
-            public string Year { get; set; }
-
-            [JsonProperty("Population")]
-            public int Population { get; set; }
-
-            [JsonProperty("Slug Nation")]
-            public string SlugNation { get; set; }
-        }
-
-        public class Source
-        {
-            [JsonProperty("measures")]
-            public List<string> Measures { get; set; }
-
-            [JsonProperty("annotations")]
-            public Annotations Annotations { get; set; }
-
-            [JsonProperty("name")]
-            public string Name { get; set; }
-
-            [JsonProperty("substitutions")]
-            public List<object> Substitutions { get; set; }
-        }
-
-        public class Annotations
-        {
-            [JsonProperty("source_name")]
-            public string SourceName { get; set; }
-
-            [JsonProperty("source_description")]
-            public string SourceDescription { get; set; }
-
-            [JsonProperty("dataset_name")]
-            public string DatasetName { get; set; }
-
-            [JsonProperty("dataset_link")]
-            public string DatasetLink { get; set; }
-
-            [JsonProperty("table_id")]
-            public string TableId { get; set; }
-
-            [JsonProperty("topic")]
-            public string Topic { get; set; }
-
-            [JsonProperty("subtopic")]
-            public string Subtopic { get; set; }
+            catch (HttpRequestException e)
+            {
+                _logger.LogError(e, "Error fetching population data.");
+            }
         }
     }
 }
